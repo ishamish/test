@@ -78,7 +78,7 @@ export async function addPRCardToColumn(cardsEndpoint: string, pullRequestId: nu
             // PR is already linked to the project
             return { 'error': false, 'already_added': true };
         }
-        return { 'error': true, 'message': json['errors'][0]['message'] }
+        return { 'error': true, 'message': json['errors'][0]['message'], 'already_added':false }
     } else {
         return { 'error': false };
     }
