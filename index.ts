@@ -16,12 +16,14 @@ export async function updateProjectColumn(pullReqListEndpoint: string, cardEndpo
             if (hoursDiff <= HOURS_FLAG) {
                 // Adding PR Card To Column
                 let res = await addPRCardToColumn(cardEndpoint, pullReq["id"], authToken);
-                if(!res.error){
+                if (!res.error) {
                     // Successfully added
                     core.info(`Added [PR Title: ${pullReq['title']}]`);
-                }else{
-                    core.info(`Failed to Add [PR Title: ${pullReq['title']}]`);
-                    console.error(res.message);
+                } else {
+                    if (!res.already_added) {
+                        core.info(`Failed to Add [PR Title: ${pullReq['title']}]`);
+                        core.error(res.message);
+                    }
                 }
             }
         }
@@ -56,7 +58,7 @@ export async function getColumnEndpoint(projectEndpoint: string, PROJECT_URL: st
 }
 
 // Helper Function to iterate the pullRequests and update the Project Column
-export async function addPRCardToColumn(cardsEndpoint: string, pullRequestId: number, authToken: string): Promise<{ 'error': boolean, 'message'?: string }> {
+export async function addPRCardToColumn(cardsEndpoint: string, pullRequestId: number, authToken: string): Promise<{ 'error': boolean, 'message'?: string, 'already_added'?: boolean }> {
     var options = {
         method: 'POST',
         headers: {
@@ -73,7 +75,7 @@ export async function addPRCardToColumn(cardsEndpoint: string, pullRequestId: nu
     if (json['errors']) {
         if (json['errors'][0]['message'] == 'Project already has the associated issue') {
             // PR is already linked to the project
-            return { 'error': false };
+            return { 'error': false, 'already_added': true };
         }
         return { 'error': true, 'message': json['errors'][0]['message'] }
     } else {

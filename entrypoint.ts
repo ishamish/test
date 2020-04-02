@@ -50,7 +50,6 @@ import * as index from './index';
         core.info('Updation Success');
         
     } catch (err) {
-        core.info(err);
-        core.info("Exiting");
+        core.error(err);
     }
 })()
