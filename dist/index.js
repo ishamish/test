@@ -107,7 +107,7 @@ var repoUrlRegex = /https:\/\/github.com\/([^/]+)\/([^/]+)\/?/;
 // Function to iterate the pullRequests and update the Project Column
 function updateProjectColumn(pullReqListEndpoint, cardEndpoint, authToken, COLUMN_NAME, currentHours, HOURS_FLAG) {
     return __awaiter(this, void 0, void 0, function () {
-        var res, json, _i, json_1, pullReq, createdAtHours, hoursDiff, err_1;
+        var res, json, _i, json_1, pullReq, createdAtHours, hoursDiff, res_1, err_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -126,11 +126,17 @@ function updateProjectColumn(pullReqListEndpoint, cardEndpoint, authToken, COLUM
                     createdAtHours = new Date(pullReq["created_at"]).getHours();
                     hoursDiff = currentHours - createdAtHours;
                     if (!(hoursDiff <= HOURS_FLAG)) return [3 /*break*/, 5];
-                    // Adding PR Card To Column
-                    console.log("Adding [PR Title: " + pullReq['title'] + "] into: [Column Name: " + COLUMN_NAME + "]");
                     return [4 /*yield*/, addPRCardToColumn(cardEndpoint, pullReq["id"], authToken)];
                 case 4:
-                    _a.sent();
+                    res_1 = _a.sent();
+                    if (!res_1.error) {
+                        // Successfully added
+                        console.log("Added [PR Title: " + pullReq['title'] + "]");
+                    }
+                    else {
+                        console.log("Failed to Add [PR Title: " + pullReq['title'] + "]");
+                        console.error(res_1.message);
+                    }
                     _a.label = 5;
                 case 5:
                     _i++;
@@ -207,7 +213,14 @@ function addPRCardToColumn(cardsEndpoint, pullRequestId, authToken) {
                 case 2:
                     json = _a.sent();
                     if (json['errors']) {
-                        console.log("Error while adding Pull Request Card To Column [" + json['errors'][0]['message'] + "]");
+                        if (json['errors'][0]['message'] == 'Project already has the associated issue') {
+                            // PR is already linked to the project
+                            return [2 /*return*/, { 'error': false }];
+                        }
+                        return [2 /*return*/, { 'error': true, 'message': json['errors'][0]['message'] }];
+                    }
+                    else {
+                        return [2 /*return*/, { 'error': false }];
                     }
                     return [2 /*return*/];
             }

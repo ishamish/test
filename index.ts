@@ -14,8 +14,14 @@ export async function updateProjectColumn(pullReqListEndpoint: string, cardEndpo
             let hoursDiff = currentHours - createdAtHours;
             if (hoursDiff <= HOURS_FLAG) {
                 // Adding PR Card To Column
-                console.log(`Adding [PR Title: ${pullReq['title']}] into: [Column Name: ${COLUMN_NAME}]`);
-                await addPRCardToColumn(cardEndpoint, pullReq["id"], authToken);
+                let res = await addPRCardToColumn(cardEndpoint, pullReq["id"], authToken);
+                if(!res.error){
+                    // Successfully added
+                    console.log(`Added [PR Title: ${pullReq['title']}]`);
+                }else{
+                    console.log(`Failed to Add [PR Title: ${pullReq['title']}]`);
+                    console.error(res.message);
+                }
             }
         }
     } catch (err) {
@@ -49,7 +55,7 @@ export async function getColumnEndpoint(projectEndpoint: string, PROJECT_URL: st
 }
 
 // Helper Function to iterate the pullRequests and update the Project Column
-export async function addPRCardToColumn(cardsEndpoint: string, pullRequestId: number, authToken: string) {
+export async function addPRCardToColumn(cardsEndpoint: string, pullRequestId: number, authToken: string): Promise<{ 'error': boolean, 'message'?: string }> {
     var options = {
         method: 'POST',
         headers: {
@@ -64,7 +70,13 @@ export async function addPRCardToColumn(cardsEndpoint: string, pullRequestId: nu
     let res = await fetch(cardsEndpoint, options)
     let json = await res.json();
     if (json['errors']) {
-        console.log(`Error while adding Pull Request Card To Column [${json['errors'][0]['message']}]`);
+        if (json['errors'][0]['message'] == 'Project already has the associated issue') {
+            // PR is already linked to the project
+            return { 'error': false };
+        }
+        return { 'error': true, 'message': json['errors'][0]['message'] }
+    } else {
+        return { 'error': false };
     }
 }
 
