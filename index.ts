@@ -17,13 +17,14 @@ export async function updateProjectColumn(pullReqListEndpoint: string, cardEndpo
                 // Adding PR Card To Column
                 let res = await addPRCardToColumn(cardEndpoint, pullReq["id"], authToken);
                 if (!res.error) {
-                    // Successfully added
-                    core.info(`Added [PR Title: ${pullReq['title']}]`);
-                } else {
                     if (!res.already_added) {
-                        core.info(`Failed to Add [PR Title: ${pullReq['title']}]`);
-                        core.error(res.message);
+                        // Successfully added
+                        core.info(`Added [PR Title: ${pullReq['title']}]`);
                     }
+
+                } else {
+                    core.info(`Failed to Add [PR Title: ${pullReq['title']}]`);
+                    core.error(res.message);
                 }
             }
         }
