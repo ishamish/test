@@ -12,3 +12,10 @@ jobs:
         COLUMN_NAME: Butterflow
         PROJECT_URL: https://github.com/users/subhamX/projects/1
         REPO_URL: https://github.com/subhamX/test/
+    - name: Automate Repo2
+      uses: subhamX/test@github
+      with:
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        COLUMN_NAME: Butterflow1
+        PROJECT_URL: https://github.com/users/subhamX/projects/1
+        REPO_URL: https://github.com/subhamX/test/
