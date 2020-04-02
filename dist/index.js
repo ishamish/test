@@ -101,13 +101,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 exports.__esModule = true;
 var fetch = __webpack_require__(844);
+var core = __webpack_require__(556);
 // RegExp Expressions of correct repo and project URL
 var projectUrlRegex = /https:\/\/github.com\/(orgs|users)\/([^/]+)\/projects\/([\d]+)\/?/;
 var repoUrlRegex = /https:\/\/github.com\/([^/]+)\/([^/]+)\/?/;
 // Function to iterate the pullRequests and update the Project Column
 function updateProjectColumn(pullReqListEndpoint, cardEndpoint, authToken, COLUMN_NAME, currentHours, HOURS_FLAG) {
     return __awaiter(this, void 0, void 0, function () {
-        var res, json, _i, json_1, pullReq, createdAtHours, hoursDiff, err_1;
+        var res, json, _i, json_1, pullReq, createdAtHours, hoursDiff, res_1, err_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -126,11 +127,17 @@ function updateProjectColumn(pullReqListEndpoint, cardEndpoint, authToken, COLUM
                     createdAtHours = new Date(pullReq["created_at"]).getHours();
                     hoursDiff = currentHours - createdAtHours;
                     if (!(hoursDiff <= HOURS_FLAG)) return [3 /*break*/, 5];
-                    // Adding PR Card To Column
-                    console.log("Adding [PR Title: " + pullReq['title'] + "] into: [Column Name: " + COLUMN_NAME + "]");
                     return [4 /*yield*/, addPRCardToColumn(cardEndpoint, pullReq["id"], authToken)];
                 case 4:
-                    _a.sent();
+                    res_1 = _a.sent();
+                    if (!res_1.error) {
+                        // Successfully added
+                        core.info("Added [PR Title: " + pullReq['title'] + "]");
+                    }
+                    else {
+                        core.info("Failed to Add [PR Title: " + pullReq['title'] + "]");
+                        console.error(res_1.message);
+                    }
                     _a.label = 5;
                 case 5:
                     _i++;
@@ -138,7 +145,7 @@ function updateProjectColumn(pullReqListEndpoint, cardEndpoint, authToken, COLUM
                 case 6: return [3 /*break*/, 8];
                 case 7:
                     err_1 = _a.sent();
-                    console.log(err_1);
+                    core.info(err_1);
                     return [3 /*break*/, 8];
                 case 8: return [2 /*return*/];
             }
@@ -207,7 +214,14 @@ function addPRCardToColumn(cardsEndpoint, pullRequestId, authToken) {
                 case 2:
                     json = _a.sent();
                     if (json['errors']) {
-                        console.log("Error while adding Pull Request Card To Column [" + json['errors'][0]['message'] + "]");
+                        if (json['errors'][0]['message'] == 'Project already has the associated issue') {
+                            // PR is already linked to the project
+                            return [2 /*return*/, { 'error': false }];
+                        }
+                        return [2 /*return*/, { 'error': true, 'message': json['errors'][0]['message'] }];
+                    }
+                    else {
+                        return [2 /*return*/, { 'error': false }];
                     }
                     return [2 /*return*/];
             }
@@ -466,27 +480,27 @@ var index = __webpack_require__(104);
                     HOURS_FLAG = 24;
                     projectEndpoint = index.constructProjectEndpoint(PROJECT_URL).projectEndpoint;
                     _a = index.constructPullReqListEndpoint(REPO_URL), pullReqListEndpoint = _a.pullReqListEndpoint, uName = _a.uName;
-                    console.log("Project Endpoint: " + projectEndpoint);
-                    console.log("Pull Request List EndPoint: " + pullReqListEndpoint);
+                    core.info("Project Endpoint: " + projectEndpoint);
+                    core.info("Pull Request List EndPoint: " + pullReqListEndpoint);
                     authToken = index.constructAuthToken(uName, ACCESS_TOKEN);
                     return [4 /*yield*/, index.getColumnEndpoint(projectEndpoint, PROJECT_URL)];
                 case 1:
                     columnEndpoint = _b.sent();
-                    console.log("Column Endpoint: " + columnEndpoint);
+                    core.info("Column Endpoint: " + columnEndpoint);
                     return [4 /*yield*/, index.getCardEndpoint(columnEndpoint, authToken, COLUMN_NAME)];
                 case 2:
                     cardEndpoint = _b.sent();
-                    console.log("Card Endpoint: " + columnEndpoint);
-                    console.log("Updating Pull Requests");
+                    core.info("Card Endpoint: " + columnEndpoint);
+                    core.info("Updating Pull Requests");
                     return [4 /*yield*/, index.updateProjectColumn(pullReqListEndpoint, cardEndpoint, authToken, COLUMN_NAME, currentHours, HOURS_FLAG)];
                 case 3:
                     _b.sent();
-                    console.log('Updation Success');
+                    core.info('Updation Success');
                     return [3 /*break*/, 5];
                 case 4:
                     err_1 = _b.sent();
-                    console.log(err_1);
-                    console.log("Exiting");
+                    core.info(err_1);
+                    core.info("Exiting");
                     return [3 /*break*/, 5];
                 case 5: return [2 /*return*/];
             }
