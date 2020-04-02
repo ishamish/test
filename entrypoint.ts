@@ -48,7 +48,6 @@ import * as index from './index';
         core.info(`Updating Pull Requests`);
         await index.updateProjectColumn(pullReqListEndpoint, cardEndpoint, authToken, COLUMN_NAME, currentHours, HOURS_FLAG);
         core.info('Updation Success');
-        
     } catch (err) {
         core.error(err);
     }

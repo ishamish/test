@@ -135,8 +135,10 @@ function updateProjectColumn(pullReqListEndpoint, cardEndpoint, authToken, COLUM
                         core.info("Added [PR Title: " + pullReq['title'] + "]");
                     }
                     else {
-                        core.info("Failed to Add [PR Title: " + pullReq['title'] + "]");
-                        console.error(res_1.message);
+                        if (!res_1.already_added) {
+                            core.info("Failed to Add [PR Title: " + pullReq['title'] + "]");
+                            core.error(res_1.message);
+                        }
                     }
                     _a.label = 5;
                 case 5:
@@ -216,7 +218,7 @@ function addPRCardToColumn(cardsEndpoint, pullRequestId, authToken) {
                     if (json['errors']) {
                         if (json['errors'][0]['message'] == 'Project already has the associated issue') {
                             // PR is already linked to the project
-                            return [2 /*return*/, { 'error': false }];
+                            return [2 /*return*/, { 'error': false, 'already_added': true }];
                         }
                         return [2 /*return*/, { 'error': true, 'message': json['errors'][0]['message'] }];
                     }
@@ -499,8 +501,7 @@ var index = __webpack_require__(104);
                     return [3 /*break*/, 5];
                 case 4:
                     err_1 = _b.sent();
-                    core.info(err_1);
-                    core.info("Exiting");
+                    core.error(err_1);
                     return [3 /*break*/, 5];
                 case 5: return [2 /*return*/];
             }
